@@ -1,8 +1,8 @@
 import unittest
 
 import pykka
-
 from mopidy.models import Ref
+
 from mopidy_soundcloud import Extension, actor
 from mopidy_soundcloud.library import (
     SoundCloudLibraryProvider,

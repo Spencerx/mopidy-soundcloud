@@ -8,15 +8,15 @@ import unicodedata
 from contextlib import closing
 from multiprocessing.pool import ThreadPool
 from urllib.parse import quote_plus
-from bs4 import BeautifulSoup
 
 import requests
+from bs4 import BeautifulSoup
+from mopidy import httpclient
+from mopidy.models import Album, Artist, Track
 from requests.adapters import HTTPAdapter
 from requests.exceptions import HTTPError
 
 import mopidy_soundcloud
-from mopidy import httpclient
-from mopidy.models import Album, Artist, Track
 
 logger = logging.getLogger(__name__)
 
@@ -112,17 +112,15 @@ class ThrottlingHttpAdapter(HTTPAdapter):
                 self.hits < self.max_hits
             ):
                 return False
-            else:
-                logger.debug(
-                    f"Request throttling after {self.hits} hits in "
-                    f"{elapsed.microseconds} us "
-                    f"(window until {self.timestamp + self.total_window})"
-                )
-                return True
-        else:
-            self.timestamp = now
-            self.hits = 0
-            return False
+            logger.debug(
+                f"Request throttling after {self.hits} hits in "
+                f"{elapsed.microseconds} us "
+                f"(window until {self.timestamp + self.total_window})"
+            )
+            return True
+        self.timestamp = now
+        self.hits = 0
+        return False
 
     def send(self, request, **kwargs):
         if request.method == "HEAD" and self._is_too_many_requests():
@@ -132,8 +130,7 @@ class ThrottlingHttpAdapter(HTTPAdapter):
             resp.status_code = 429
             resp.reason = "Client throttled to {self.rate:.1f} requests per second"
             return resp
-        else:
-            return super().send(request, **kwargs)
+        return super().send(request, **kwargs)
 
 
 class SoundCloudClient:
@@ -388,7 +385,7 @@ class SoundCloudClient:
                         "trying with standard app client id.."
                     )
                     logger.debug(
-                        f"Caught public client id stream fail:\n{str(e)}"
+                        f"Caught public client id stream fail:\n{e!s}"
                         f"\n{self.parse_fail_reason(stream.reason)}"
                     )
 
@@ -396,7 +393,7 @@ class SoundCloudClient:
         req = self.http_client.head(stream_url)
         if req.status_code == 302:
             return req.headers.get("Location", None)
-        elif req.status_code == 429:
+        if req.status_code == 429:
             logger.warning(
                 "SoundCloud daily rate limit exceeded "
                 f"{self.parse_fail_reason(req.reason)}"

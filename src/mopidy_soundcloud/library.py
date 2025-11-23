@@ -28,8 +28,7 @@ def simplify_search_query(query):
         return " ".join(r)
     if isinstance(query, list):
         return " ".join(query)
-    else:
-        return query
+    return query
 
 
 class SoundCloudLibraryProvider(backend.LibraryProvider):
@@ -84,22 +83,20 @@ class SoundCloudLibraryProvider(backend.LibraryProvider):
         if not self.vfs.get(uri):
             (req_type, res_id) = re.match(r".*:(\w*)(?:/(\d*))?", uri).groups()
             # Sets
-            if "sets" == req_type:
+            if req_type == "sets":
                 if res_id:
                     return self.tracklist_to_vfs(self.backend.remote.get_set(res_id))
-                else:
-                    return self.list_sets()
+                return self.list_sets()
             # Following
-            if "following" == req_type:
+            if req_type == "following":
                 if res_id:
                     return self.tracklist_to_vfs(self.backend.remote.get_tracks(res_id))
-                else:
-                    return self.list_user_follows()
+                return self.list_user_follows()
             # Liked
-            if "liked" == req_type:
+            if req_type == "liked":
                 return self.list_liked()
             # User stream
-            if "stream" == req_type:
+            if req_type == "stream":
                 return self.tracklist_to_vfs(self.backend.remote.get_user_stream())
 
         # root directory
@@ -109,7 +106,7 @@ class SoundCloudLibraryProvider(backend.LibraryProvider):
         # TODO Support exact search
 
         if not query:
-            return
+            return None
 
         if "uri" in query:
             search_query = "".join(query["uri"])

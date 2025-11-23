@@ -1,8 +1,8 @@
 import logging
 
 import pykka
-
 from mopidy import backend
+
 from mopidy_soundcloud.library import SoundCloudLibraryProvider
 from mopidy_soundcloud.soundcloud import SoundCloudClient
 
