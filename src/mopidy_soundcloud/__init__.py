@@ -1,15 +1,14 @@
 import pathlib
-
-import pkg_resources
+from importlib.metadata import version
 
 from mopidy import config, ext
 from mopidy.exceptions import ExtensionError
 
-__version__ = pkg_resources.get_distribution("Mopidy-SoundCloud").version
+__version__ = version("mopidy-soundcloud")
 
 
 class Extension(ext.Extension):
-    dist_name = "Mopidy-SoundCloud"
+    dist_name = "mopidy-soundcloud"
     ext_name = "soundcloud"
     version = __version__
 

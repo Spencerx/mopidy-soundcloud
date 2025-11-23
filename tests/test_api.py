@@ -3,9 +3,9 @@ import unittest
 from unittest import mock
 
 import vcr
+from mopidy.models import Track
 
 import mopidy_soundcloud
-from mopidy.models import Track
 from mopidy_soundcloud import Extension
 from mopidy_soundcloud.soundcloud import SoundCloudClient, readable_url
 
@@ -29,7 +29,7 @@ class ApiTest(unittest.TestCase):
         self.api = SoundCloudClient({"soundcloud": config, "proxy": {}})
 
     def test_sets_user_agent(self):
-        agent = "Mopidy-SoundCloud/%s Mopidy/" % mopidy_soundcloud.__version__
+        agent = "mopidy-soundcloud/%s Mopidy/" % mopidy_soundcloud.__version__
         assert agent in self.api.http_client.headers["user-agent"]
 
     def test_public_client_no_token(self):
@@ -77,9 +77,7 @@ class ApiTest(unittest.TestCase):
 
     @my_vcr.use_cassette("sc-resolve-http.yaml")
     def test_resolves_http_url(self):
-        track = self.api.resolve_url(
-            "https://soundcloud.com/bbc-radio-4/m-w-cloud"
-        )[0]
+        track = self.api.resolve_url("https://soundcloud.com/bbc-radio-4/m-w-cloud")[0]
         assert isinstance(track, Track)
         assert (
             track.uri
@@ -171,8 +169,8 @@ class ApiTest(unittest.TestCase):
         assert len(tracks) == 1
 
     def test_readeble_url(self):
-        assert "Barsuk Records" == readable_url('"@"Barsuk      Records')
-        assert "_Barsuk Records" == readable_url("_Barsuk 'Records'")
+        assert readable_url('"@"Barsuk      Records') == "Barsuk Records"
+        assert readable_url("_Barsuk 'Records'") == "_Barsuk Records"
 
     @my_vcr.use_cassette("sc-resolve-track-id.yaml")
     def test_resolves_stream_track(self):
