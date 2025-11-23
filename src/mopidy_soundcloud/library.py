@@ -33,9 +33,7 @@ def simplify_search_query(query):
 
 
 class SoundCloudLibraryProvider(backend.LibraryProvider):
-    root_directory = models.Ref.directory(
-        uri="soundcloud:directory", name="SoundCloud"
-    )
+    root_directory = models.Ref.directory(uri="soundcloud:directory", name="SoundCloud")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -60,9 +58,7 @@ class SoundCloudLibraryProvider(backend.LibraryProvider):
         vfs_list = collections.OrderedDict()
         for track in self.backend.remote.get_likes():
             logger.debug(f"Adding liked track {track.name} to VFS")
-            vfs_list[track.name] = models.Ref.track(
-                uri=track.uri, name=track.name
-            )
+            vfs_list[track.name] = models.Ref.track(uri=track.uri, name=track.name)
         return list(vfs_list.values())
 
     def list_user_follows(self):
@@ -90,17 +86,13 @@ class SoundCloudLibraryProvider(backend.LibraryProvider):
             # Sets
             if "sets" == req_type:
                 if res_id:
-                    return self.tracklist_to_vfs(
-                        self.backend.remote.get_set(res_id)
-                    )
+                    return self.tracklist_to_vfs(self.backend.remote.get_set(res_id))
                 else:
                     return self.list_sets()
             # Following
             if "following" == req_type:
                 if res_id:
-                    return self.tracklist_to_vfs(
-                        self.backend.remote.get_tracks(res_id)
-                    )
+                    return self.tracklist_to_vfs(self.backend.remote.get_tracks(res_id))
                 else:
                     return self.list_user_follows()
             # Liked
@@ -108,9 +100,7 @@ class SoundCloudLibraryProvider(backend.LibraryProvider):
                 return self.list_liked()
             # User stream
             if "stream" == req_type:
-                return self.tracklist_to_vfs(
-                    self.backend.remote.get_user_stream()
-                )
+                return self.tracklist_to_vfs(self.backend.remote.get_user_stream())
 
         # root directory
         return list(self.vfs.get(uri, {}).values())
@@ -147,9 +137,7 @@ class SoundCloudLibraryProvider(backend.LibraryProvider):
             track_id = self.backend.remote.parse_track_uri(uri)
             track = self.backend.remote.get_track(track_id)
             if track is None:
-                logger.info(
-                    f"Failed to lookup {uri}: SoundCloud track not found"
-                )
+                logger.info(f"Failed to lookup {uri}: SoundCloud track not found")
                 return []
             return [track]
         except Exception as error:

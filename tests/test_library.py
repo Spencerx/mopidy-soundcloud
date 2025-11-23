@@ -48,10 +48,7 @@ class ApiTest(unittest.TestCase):
         )
 
     def test_simple_search(self):
-        assert (
-            simplify_search_query("explosions in the sky")
-            == "explosions in the sky"
-        )
+        assert simplify_search_query("explosions in the sky") == "explosions in the sky"
 
     def test_aria_search(self):
         assert (
@@ -61,9 +58,7 @@ class ApiTest(unittest.TestCase):
 
     def test_only_resolves_soundcloud_uris(self):
         assert (
-            self.library.search(
-                {"uri": "http://www.youtube.com/watch?v=wD6H6Yhluo8"}
-            )
+            self.library.search({"uri": "http://www.youtube.com/watch?v=wD6H6Yhluo8"})
             is None
         )
 
@@ -84,9 +79,7 @@ class ApiTest(unittest.TestCase):
                 type="directory",
                 uri="soundcloud:directory:following",
             ),
-            Ref(
-                name="Liked", type="directory", uri="soundcloud:directory:liked"
-            ),
+            Ref(name="Liked", type="directory", uri="soundcloud:directory:liked"),
             Ref(name="Sets", type="directory", uri="soundcloud:directory:sets"),
             Ref(
                 name="Stream",

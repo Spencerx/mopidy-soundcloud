@@ -22,19 +22,13 @@ logger = logging.getLogger(__name__)
 
 
 def safe_url(uri):
-    return quote_plus(
-        unicodedata.normalize("NFKD", uri).encode("ASCII", "ignore")
-    )
+    return quote_plus(unicodedata.normalize("NFKD", uri).encode("ASCII", "ignore"))
 
 
 def readable_url(uri):
     valid_chars = f"-_.() {string.ascii_letters}{string.digits}"
-    safe_uri = (
-        unicodedata.normalize("NFKD", uri).encode("ascii", "ignore").decode()
-    )
-    return re.sub(
-        r"\s+", " ", "".join(c for c in safe_uri if c in valid_chars)
-    ).strip()
+    safe_uri = unicodedata.normalize("NFKD", uri).encode("ascii", "ignore").decode()
+    return re.sub(r"\s+", " ", "".join(c for c in safe_uri if c in valid_chars)).strip()
 
 
 def get_user_url(user_id):
@@ -58,8 +52,7 @@ def get_mopidy_requests_session(config, public=False):
     return get_requests_session(
         proxy_config=config["proxy"],
         user_agent=(
-            f"{mopidy_soundcloud.Extension.dist_name}/"
-            f"{mopidy_soundcloud.__version__}"
+            f"{mopidy_soundcloud.Extension.dist_name}/{mopidy_soundcloud.__version__}"
         ),
         token=config["soundcloud"]["auth_token"],
         public=public,
@@ -107,9 +100,7 @@ class ThrottlingHttpAdapter(HTTPAdapter):
         self.hits = 0
         self.rate = burst_length / burst_window
         self.burst_window = datetime.timedelta(seconds=burst_window)
-        self.total_window = datetime.timedelta(
-            seconds=burst_window + wait_window
-        )
+        self.total_window = datetime.timedelta(seconds=burst_window + wait_window)
         self.timestamp = datetime.datetime.min
 
     def _is_too_many_requests(self):
@@ -139,9 +130,7 @@ class ThrottlingHttpAdapter(HTTPAdapter):
             resp.request = request
             resp.url = request.url
             resp.status_code = 429
-            resp.reason = (
-                "Client throttled to {self.rate:.1f} requests per second"
-            )
+            resp.reason = "Client throttled to {self.rate:.1f} requests per second"
             return resp
         else:
             return super().send(request, **kwargs)
@@ -154,14 +143,10 @@ class SoundCloudClient:
         super().__init__()
         self.explore_songs = config["soundcloud"].get("explore_songs", 25)
         self.http_client = get_mopidy_requests_session(config)
-        adapter = ThrottlingHttpAdapter(
-            burst_length=3, burst_window=1, wait_window=10
-        )
+        adapter = ThrottlingHttpAdapter(burst_length=3, burst_window=1, wait_window=10)
         self.http_client.mount("https://api.soundcloud.com/", adapter)
 
-        self.public_stream_client = get_mopidy_requests_session(
-            config, public=True
-        )
+        self.public_stream_client = get_mopidy_requests_session(config, public=True)
 
     @property
     @cache()
@@ -212,9 +197,7 @@ class SoundCloudClient:
             name = playlist.get("title")
             set_id = str(playlist.get("id"))
             tracks = playlist.get("tracks", [])
-            logger.debug(
-                f"Fetched set {name} with ID {set_id} ({len(tracks)} tracks)"
-            )
+            logger.debug(f"Fetched set {name} with ID {set_id} ({len(tracks)} tracks)")
             playable_sets.append((name, set_id, tracks))
         return playable_sets
 
@@ -264,9 +247,7 @@ class SoundCloudClient:
                 tracks.append(self.parse_track(item))
             elif item["kind"] == "playlist":
                 playlist_tracks = item.get("tracks", [])
-                logger.debug(
-                    f"Parsing {len(playlist_tracks)} playlist track(s)..."
-                )
+                logger.debug(f"Parsing {len(playlist_tracks)} playlist track(s)...")
                 for track in playlist_tracks:
                     tracks.append(self.parse_track(track))
             else:
@@ -288,10 +269,7 @@ class SoundCloudClient:
                 return res.json()
         except Exception as e:
             if isinstance(e, HTTPError) and e.response.status_code == 401:
-                logger.error(
-                    'Invalid "auth_token" used for SoundCloud '
-                    "authentication!"
-                )
+                logger.error('Invalid "auth_token" used for SoundCloud authentication!')
             else:
                 logger.error(f"SoundCloud API request failed: {e}")
         return {}
@@ -304,9 +282,7 @@ class SoundCloudClient:
         if not data:
             return None
         if not data.get("streamable"):
-            logger.info(
-                f"{data.get('title')!r} can't be streamed from SoundCloud"
-            )
+            logger.info(f"{data.get('title')!r} can't be streamed from SoundCloud")
             return None
         if not data.get("kind") == "track":
             logger.debug(f"{data.get('title')} is not a track")
@@ -319,9 +295,7 @@ class SoundCloudClient:
         if "title" in data:
             label_name = data.get("label_name")
             if not label_name:
-                label_name = data.get("user", {}).get(
-                    "username", "Unknown label"
-                )
+                label_name = data.get("user", {}).get("username", "Unknown label")
 
             track_kwargs["name"] = data["title"]
             artist_kwargs["name"] = label_name
@@ -334,9 +308,7 @@ class SoundCloudClient:
             args = (data["sharing"], data["permalink_url"], data["stream_url"])
             track_kwargs["uri"] = self.get_streamable_url(*args)
             if track_kwargs["uri"] is None:
-                logger.info(
-                    f"{data.get('title')} can't be streamed from SoundCloud"
-                )
+                logger.info(f"{data.get('title')} can't be streamed from SoundCloud")
                 return None
         else:
             track_kwargs["uri"] = (
