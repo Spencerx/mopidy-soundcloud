@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 import collections
 import logging
 import re
 import urllib.parse
+from typing import TYPE_CHECKING
 
 from mopidy import backend, models
 from mopidy.models import SearchResult, Track
+
+if TYPE_CHECKING:
+    from mopidy_soundcloud.actor import SoundCloudBackend
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +38,8 @@ def simplify_search_query(query):
 
 
 class SoundCloudLibraryProvider(backend.LibraryProvider):
+    backend: SoundCloudBackend
+
     root_directory = models.Ref.directory(uri="soundcloud:directory", name="SoundCloud")
 
     def __init__(self, *args, **kwargs):

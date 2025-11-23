@@ -26,6 +26,8 @@ class SoundCloudBackend(pykka.ThreadingActor, backend.Backend):
 
 
 class SoundCloudPlaybackProvider(backend.PlaybackProvider):
+    backend: SoundCloudBackend
+
     def translate_uri(self, uri):
         track_id = self.backend.remote.parse_track_uri(uri)
         track = self.backend.remote.get_track(track_id, True)
