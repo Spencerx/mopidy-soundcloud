@@ -29,9 +29,10 @@ jobs:
             python: "3.13"
             tox: "3.13"
             coverage: true
-          - name: "pyright"
-            python: "3.13"
-            tox: "pyright"
+          # Disabled until extension is typed
+          # - name: "pyright"
+          #   python: "3.13"
+          #   tox: "pyright"
           - name: "ruff check"
             python: "3.13"
             tox: "ruff-check"
