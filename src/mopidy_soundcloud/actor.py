@@ -1,8 +1,8 @@
 import logging
 
 import pykka
-
 from mopidy import backend
+
 from mopidy_soundcloud.library import SoundCloudLibraryProvider
 from mopidy_soundcloud.soundcloud import SoundCloudClient
 
@@ -26,9 +26,11 @@ class SoundCloudBackend(pykka.ThreadingActor, backend.Backend):
 
 
 class SoundCloudPlaybackProvider(backend.PlaybackProvider):
+    backend: SoundCloudBackend
+
     def translate_uri(self, uri):
         track_id = self.backend.remote.parse_track_uri(uri)
-        track = self.backend.remote.get_track(track_id, True)
+        track = self.backend.remote.get_track(track_id, True)  # noqa: FBT003
         if track is None:
             return None
         return track.uri

@@ -1,10 +1,16 @@
+from __future__ import annotations
+
 import collections
 import logging
 import re
 import urllib.parse
+from typing import TYPE_CHECKING
 
 from mopidy import backend, models
 from mopidy.models import SearchResult, Track
+
+if TYPE_CHECKING:
+    from mopidy_soundcloud.actor import SoundCloudBackend
 
 logger = logging.getLogger(__name__)
 
@@ -28,14 +34,13 @@ def simplify_search_query(query):
         return " ".join(r)
     if isinstance(query, list):
         return " ".join(query)
-    else:
-        return query
+    return query
 
 
 class SoundCloudLibraryProvider(backend.LibraryProvider):
-    root_directory = models.Ref.directory(
-        uri="soundcloud:directory", name="SoundCloud"
-    )
+    backend: SoundCloudBackend
+
+    root_directory = models.Ref.directory(uri="soundcloud:directory", name="SoundCloud")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -60,9 +65,7 @@ class SoundCloudLibraryProvider(backend.LibraryProvider):
         vfs_list = collections.OrderedDict()
         for track in self.backend.remote.get_likes():
             logger.debug(f"Adding liked track {track.name} to VFS")
-            vfs_list[track.name] = models.Ref.track(
-                uri=track.uri, name=track.name
-            )
+            vfs_list[track.name] = models.Ref.track(uri=track.uri, name=track.name)
         return list(vfs_list.values())
 
     def list_user_follows(self):
@@ -77,66 +80,58 @@ class SoundCloudLibraryProvider(backend.LibraryProvider):
         vfs_list = collections.OrderedDict()
         for temp_track in track_list:
             if not isinstance(temp_track, Track):
-                temp_track = self.backend.remote.parse_track(temp_track)
+                temp_track = self.backend.remote.parse_track(temp_track)  # noqa: PLW2901
             if hasattr(temp_track, "uri"):
                 vfs_list[temp_track.name] = models.Ref.track(
                     uri=temp_track.uri, name=temp_track.name
                 )
         return list(vfs_list.values())
 
-    def browse(self, uri):
+    def browse(self, uri):  # noqa: PLR0911
         if not self.vfs.get(uri):
             (req_type, res_id) = re.match(r".*:(\w*)(?:/(\d*))?", uri).groups()
             # Sets
-            if "sets" == req_type:
+            if req_type == "sets":
                 if res_id:
-                    return self.tracklist_to_vfs(
-                        self.backend.remote.get_set(res_id)
-                    )
-                else:
-                    return self.list_sets()
+                    return self.tracklist_to_vfs(self.backend.remote.get_set(res_id))
+                return self.list_sets()
             # Following
-            if "following" == req_type:
+            if req_type == "following":
                 if res_id:
-                    return self.tracklist_to_vfs(
-                        self.backend.remote.get_tracks(res_id)
-                    )
-                else:
-                    return self.list_user_follows()
+                    return self.tracklist_to_vfs(self.backend.remote.get_tracks(res_id))
+                return self.list_user_follows()
             # Liked
-            if "liked" == req_type:
+            if req_type == "liked":
                 return self.list_liked()
             # User stream
-            if "stream" == req_type:
-                return self.tracklist_to_vfs(
-                    self.backend.remote.get_user_stream()
-                )
+            if req_type == "stream":
+                return self.tracklist_to_vfs(self.backend.remote.get_user_stream())
 
         # root directory
         return list(self.vfs.get(uri, {}).values())
 
-    def search(self, query=None, uris=None, exact=False):
-        # TODO Support exact search
+    def search(self, query=None, uris=None, exact=False):  # noqa: ARG002, FBT002
+        # TODO: Support exact search
 
         if not query:
-            return
+            return None
 
         if "uri" in query:
             search_query = "".join(query["uri"])
             url = urllib.parse.urlparse(search_query)
-            if "soundcloud.com" in url.netloc:
-                logger.info(f"Resolving SoundCloud for: {search_query}")
-                return SearchResult(
-                    uri="soundcloud:search",
-                    tracks=self.backend.remote.resolve_url(search_query),
-                )
-        else:
-            search_query = simplify_search_query(query)
-            logger.info(f"Searching SoundCloud for: {search_query}")
+            if "soundcloud.com" not in url.netloc:
+                return None
+            logger.info(f"Resolving SoundCloud for: {search_query}")
             return SearchResult(
                 uri="soundcloud:search",
-                tracks=self.backend.remote.search(search_query),
+                tracks=self.backend.remote.resolve_url(search_query),
             )
+        search_query = simplify_search_query(query)
+        logger.info(f"Searching SoundCloud for: {search_query}")
+        return SearchResult(
+            uri="soundcloud:search",
+            tracks=self.backend.remote.search(search_query),
+        )
 
     def lookup(self, uri):
         if "sc:" in uri:
@@ -147,11 +142,10 @@ class SoundCloudLibraryProvider(backend.LibraryProvider):
             track_id = self.backend.remote.parse_track_uri(uri)
             track = self.backend.remote.get_track(track_id)
             if track is None:
-                logger.info(
-                    f"Failed to lookup {uri}: SoundCloud track not found"
-                )
+                logger.info(f"Failed to lookup {uri}: SoundCloud track not found")
                 return []
-            return [track]
-        except Exception as error:
-            logger.error(f"Failed to lookup {uri}: {error}")
+        except Exception as error:  # noqa: BLE001
+            logger.error(f"Failed to lookup {uri}: {error}")  # noqa: TRY400
             return []
+        else:
+            return [track]

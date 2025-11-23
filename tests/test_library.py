@@ -1,8 +1,8 @@
 import unittest
 
 import pykka
-
 from mopidy.models import Ref
+
 from mopidy_soundcloud import Extension, actor
 from mopidy_soundcloud.library import (
     SoundCloudLibraryProvider,
@@ -15,7 +15,7 @@ from mopidy_soundcloud.soundcloud import safe_url
 class ApiTest(unittest.TestCase):
     def setUp(self):
         config = Extension().get_config_schema()
-        config["auth_token"] = "1-35204-61921957-55796ebef403996"
+        config["auth_token"] = "1-35204-61921957-55796ebef403996"  # noqa: S105
         # using this user http://maildrop.cc/inbox/mopidytestuser
         self.backend = actor.SoundCloudBackend.start(
             config={"soundcloud": config, "proxy": {}}, audio=None
@@ -48,10 +48,7 @@ class ApiTest(unittest.TestCase):
         )
 
     def test_simple_search(self):
-        assert (
-            simplify_search_query("explosions in the sky")
-            == "explosions in the sky"
-        )
+        assert simplify_search_query("explosions in the sky") == "explosions in the sky"
 
     def test_aria_search(self):
         assert (
@@ -61,9 +58,7 @@ class ApiTest(unittest.TestCase):
 
     def test_only_resolves_soundcloud_uris(self):
         assert (
-            self.library.search(
-                {"uri": "http://www.youtube.com/watch?v=wD6H6Yhluo8"}
-            )
+            self.library.search({"uri": "http://www.youtube.com/watch?v=wD6H6Yhluo8"})
             is None
         )
 
@@ -84,9 +79,7 @@ class ApiTest(unittest.TestCase):
                 type="directory",
                 uri="soundcloud:directory:following",
             ),
-            Ref(
-                name="Liked", type="directory", uri="soundcloud:directory:liked"
-            ),
+            Ref(name="Liked", type="directory", uri="soundcloud:directory:liked"),
             Ref(name="Sets", type="directory", uri="soundcloud:directory:sets"),
             Ref(
                 name="Stream",

@@ -1,15 +1,14 @@
 import pathlib
-
-import pkg_resources
+from importlib.metadata import version
 
 from mopidy import config, ext
 from mopidy.exceptions import ExtensionError
 
-__version__ = pkg_resources.get_distribution("Mopidy-SoundCloud").version
+__version__ = version("mopidy-soundcloud")
 
 
 class Extension(ext.Extension):
-    dist_name = "Mopidy-SoundCloud"
+    dist_name = "mopidy-soundcloud"
     ext_name = "soundcloud"
     version = __version__
 
@@ -28,13 +27,14 @@ class Extension(ext.Extension):
         if not config.getboolean("soundcloud", "enabled"):
             return
         if not config.get("soundcloud", "auth_token"):
-            raise ExtensionError(
+            msg = (
                 "In order to use SoundCloud extension you must provide an "
                 "auth token. For more information refer to "
                 "https://github.com/mopidy/mopidy-soundcloud/"
             )
+            raise ExtensionError(msg)
 
     def setup(self, registry):
-        from .actor import SoundCloudBackend
+        from .actor import SoundCloudBackend  # noqa: PLC0415
 
         registry.add("backend", SoundCloudBackend)

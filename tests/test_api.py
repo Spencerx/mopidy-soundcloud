@@ -1,18 +1,18 @@
-import os.path
 import unittest
+from pathlib import Path
 from unittest import mock
 
 import vcr
+from mopidy.models import Track
 
 import mopidy_soundcloud
-from mopidy.models import Track
 from mopidy_soundcloud import Extension
 from mopidy_soundcloud.soundcloud import SoundCloudClient, readable_url
 
-local_path = os.path.abspath(os.path.dirname(__file__))
+local_path = Path(__file__).parent.resolve()
 my_vcr = vcr.VCR(
     serializer="yaml",
-    cassette_library_dir=local_path + "/fixtures",
+    cassette_library_dir=str(local_path / "fixtures"),
     record_mode="once",
     match_on=["uri", "method"],
     decode_compressed_response=True,
@@ -24,16 +24,16 @@ class ApiTest(unittest.TestCase):
     @my_vcr.use_cassette("sc-login.yaml")
     def setUp(self):
         config = Extension().get_config_schema()
-        config["auth_token"] = "3-35204-970067440-lVY4FovkEcKrEGw"
+        config["auth_token"] = "3-35204-970067440-lVY4FovkEcKrEGw"  # noqa: S105
         config["explore_songs"] = 10
         self.api = SoundCloudClient({"soundcloud": config, "proxy": {}})
 
     def test_sets_user_agent(self):
-        agent = "Mopidy-SoundCloud/%s Mopidy/" % mopidy_soundcloud.__version__
+        agent = f"mopidy-soundcloud/{mopidy_soundcloud.__version__} Mopidy/"
         assert agent in self.api.http_client.headers["user-agent"]
 
     def test_public_client_no_token(self):
-        token_key = "authorization"
+        token_key = "authorization"  # noqa: S105
         assert token_key not in self.api.public_stream_client.headers._store
 
     def test_resolves_string(self):
@@ -44,8 +44,8 @@ class ApiTest(unittest.TestCase):
     def test_responds_with_error(self):
         with mock.patch("mopidy_soundcloud.soundcloud.logger.error") as d:
             config = Extension().get_config_schema()
-            config["auth_token"] = "1-fake-token"
-            SoundCloudClient({"soundcloud": config, "proxy": {}}).user
+            config["auth_token"] = "1-fake-token"  # noqa: S105
+            _ = SoundCloudClient({"soundcloud": config, "proxy": {}}).user
             d.assert_called_once_with(
                 'Invalid "auth_token" used for SoundCloud authentication!'
             )
@@ -61,8 +61,8 @@ class ApiTest(unittest.TestCase):
         trackc["uri"] = "soundcloud:song.38720262"
         track = Track(**trackc)
 
-        id = self.api.parse_track_uri(track)
-        assert id == "38720262"
+        id_ = self.api.parse_track_uri(track)
+        assert id_ == "38720262"
 
     @my_vcr.use_cassette("sc-resolve-track-none.yaml")
     def test_resolves_unknown_track_to_none(self):
@@ -77,9 +77,7 @@ class ApiTest(unittest.TestCase):
 
     @my_vcr.use_cassette("sc-resolve-http.yaml")
     def test_resolves_http_url(self):
-        track = self.api.resolve_url(
-            "https://soundcloud.com/bbc-radio-4/m-w-cloud"
-        )[0]
+        track = self.api.resolve_url("https://soundcloud.com/bbc-radio-4/m-w-cloud")[0]
         assert isinstance(track, Track)
         assert (
             track.uri
@@ -103,7 +101,7 @@ class ApiTest(unittest.TestCase):
             assert tracks[i].name == expected_tracks[i]
             assert tracks[i].length > 500
             assert len(tracks[i].artists) == 1
-            assert list(tracks[i].artists)[0].name == "yndi halda"
+            assert next(iter(tracks[i].artists)).name == "yndi halda"
 
     @my_vcr.use_cassette("sc-liked.yaml")
     def test_get_user_likes(self):
@@ -171,13 +169,13 @@ class ApiTest(unittest.TestCase):
         assert len(tracks) == 1
 
     def test_readeble_url(self):
-        assert "Barsuk Records" == readable_url('"@"Barsuk      Records')
-        assert "_Barsuk Records" == readable_url("_Barsuk 'Records'")
+        assert readable_url('"@"Barsuk      Records') == "Barsuk Records"
+        assert readable_url("_Barsuk 'Records'") == "_Barsuk Records"
 
     @my_vcr.use_cassette("sc-resolve-track-id.yaml")
     def test_resolves_stream_track(self):
         self.api._update_public_client_id = mock.Mock()
-        track = self.api.get_track("13158665", True)
+        track = self.api.get_track("13158665", True)  # noqa: FBT003
         assert isinstance(track, Track)
         assert track.uri == (
             "https://cf-media.sndcdn.com/fxguEjG4ax6B.128.mp3?Policy="
