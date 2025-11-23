@@ -1,0 +1,9 @@
+_commit: v1.1.0
+_src_path: gh:mopidy/mopidy-ext-template
+author_email: dz0ny@ubuntu.si
+author_full_name: Janez Troha
+repo_name: mopidy-soundcloud
+dist_name: Mopidy-SoundCloud
+ext_name: soundcloud
+github_username: mopidy
+short_description: Mopidy extension for playing music from SoundCloud
