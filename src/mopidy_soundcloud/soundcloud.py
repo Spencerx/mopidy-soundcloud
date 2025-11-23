@@ -1,10 +1,10 @@
-import collections
 import datetime
 import logging
 import re
 import string
 import time
 import unicodedata
+from collections.abc import Iterable
 from contextlib import closing
 from http import HTTPStatus
 from multiprocessing.pool import ThreadPool
@@ -166,7 +166,7 @@ class SoundCloudClient:
                     tracks.append(self.parse_track(kind))
                 elif kind["kind"] == "playlist":
                     playlist = kind.get("tracks")
-                    if isinstance(playlist, collections.Iterable):
+                    if isinstance(playlist, Iterable):
                         tracks.extend(self.parse_results(playlist))
 
         return self.sanitize_tracks(tracks)
