@@ -80,14 +80,14 @@ class SoundCloudLibraryProvider(backend.LibraryProvider):
         vfs_list = collections.OrderedDict()
         for temp_track in track_list:
             if not isinstance(temp_track, Track):
-                temp_track = self.backend.remote.parse_track(temp_track)
+                temp_track = self.backend.remote.parse_track(temp_track)  # noqa: PLW2901
             if hasattr(temp_track, "uri"):
                 vfs_list[temp_track.name] = models.Ref.track(
                     uri=temp_track.uri, name=temp_track.name
                 )
         return list(vfs_list.values())
 
-    def browse(self, uri):
+    def browse(self, uri):  # noqa: PLR0911
         if not self.vfs.get(uri):
             (req_type, res_id) = re.match(r".*:(\w*)(?:/(\d*))?", uri).groups()
             # Sets
@@ -110,8 +110,8 @@ class SoundCloudLibraryProvider(backend.LibraryProvider):
         # root directory
         return list(self.vfs.get(uri, {}).values())
 
-    def search(self, query=None, uris=None, exact=False):
-        # TODO Support exact search
+    def search(self, query=None, uris=None, exact=False):  # noqa: ARG002, FBT002
+        # TODO: Support exact search
 
         if not query:
             return None
@@ -119,19 +119,19 @@ class SoundCloudLibraryProvider(backend.LibraryProvider):
         if "uri" in query:
             search_query = "".join(query["uri"])
             url = urllib.parse.urlparse(search_query)
-            if "soundcloud.com" in url.netloc:
-                logger.info(f"Resolving SoundCloud for: {search_query}")
-                return SearchResult(
-                    uri="soundcloud:search",
-                    tracks=self.backend.remote.resolve_url(search_query),
-                )
-        else:
-            search_query = simplify_search_query(query)
-            logger.info(f"Searching SoundCloud for: {search_query}")
+            if "soundcloud.com" not in url.netloc:
+                return None
+            logger.info(f"Resolving SoundCloud for: {search_query}")
             return SearchResult(
                 uri="soundcloud:search",
-                tracks=self.backend.remote.search(search_query),
+                tracks=self.backend.remote.resolve_url(search_query),
             )
+        search_query = simplify_search_query(query)
+        logger.info(f"Searching SoundCloud for: {search_query}")
+        return SearchResult(
+            uri="soundcloud:search",
+            tracks=self.backend.remote.search(search_query),
+        )
 
     def lookup(self, uri):
         if "sc:" in uri:
@@ -144,7 +144,8 @@ class SoundCloudLibraryProvider(backend.LibraryProvider):
             if track is None:
                 logger.info(f"Failed to lookup {uri}: SoundCloud track not found")
                 return []
-            return [track]
-        except Exception as error:
-            logger.error(f"Failed to lookup {uri}: {error}")
+        except Exception as error:  # noqa: BLE001
+            logger.error(f"Failed to lookup {uri}: {error}")  # noqa: TRY400
             return []
+        else:
+            return [track]

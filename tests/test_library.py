@@ -15,7 +15,7 @@ from mopidy_soundcloud.soundcloud import safe_url
 class ApiTest(unittest.TestCase):
     def setUp(self):
         config = Extension().get_config_schema()
-        config["auth_token"] = "1-35204-61921957-55796ebef403996"
+        config["auth_token"] = "1-35204-61921957-55796ebef403996"  # noqa: S105
         # using this user http://maildrop.cc/inbox/mopidytestuser
         self.backend = actor.SoundCloudBackend.start(
             config={"soundcloud": config, "proxy": {}}, audio=None

@@ -30,7 +30,7 @@ class SoundCloudPlaybackProvider(backend.PlaybackProvider):
 
     def translate_uri(self, uri):
         track_id = self.backend.remote.parse_track_uri(uri)
-        track = self.backend.remote.get_track(track_id, True)
+        track = self.backend.remote.get_track(track_id, True)  # noqa: FBT003
         if track is None:
             return None
         return track.uri
