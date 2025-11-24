@@ -2,8 +2,8 @@
 name = "mopidy-soundcloud"
 description = "Mopidy extension for playing music from SoundCloud"
 readme = "README.md"
-requires-python = ">= 3.11"
-license = { text = "Apache-2.0" }
+requires-python = ">= 3.13"
+license = { text = "MIT" }
 authors = [{ name = "Janez Troha", email = "dz0ny@ubuntu.si" }]
 classifiers = [
     "Environment :: No Input/Output (Daemon)",
@@ -14,10 +14,10 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-    "beautifulsoup4 >= 4.7.1",
-    "mopidy >= 4.0.0a4",
-    "pykka >= 4",
-    "requests >= 2.0.0",
+    "beautifulsoup4 >= 4.13.4",
+    "mopidy >= 4.0.0a7",
+    "pykka >= 4.1",
+    "requests >= 2.32",
 ]
 
 [project.urls]
@@ -28,7 +28,7 @@ soundcloud = "mopidy_soundcloud:Extension"
 
 
 [build-system]
-requires = ["setuptools >= 66", "setuptools-scm >= 7.1"]
+requires = ["setuptools >= 78", "setuptools-scm >= 8.2"]
 build-backend = "setuptools.build_meta"
 
 
@@ -55,7 +55,7 @@ show_missing = true
 
 
 [tool.pyright]
-pythonVersion = "3.11"
+pythonVersion = "3.13"
 typeCheckingMode = "standard"
 # Not all dependencies have type hints:
 reportMissingTypeStubs = false
@@ -73,7 +73,7 @@ filterwarnings = [
 
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 
 [tool.ruff.lint]
 select = ["ALL"]
@@ -119,9 +119,8 @@ ignore = [
 
 [tool.tox]
 env_list = [
-    "3.11",
-    "3.12",
     "3.13",
+    "3.14",
     "pyright",
     "ruff-check",
     "ruff-format",
